@@ -10,7 +10,9 @@ import { AppCacheInterceptor } from './app-cache.interceptor';
 import { PrismaModule } from './prisma';
 import { AuthModule } from './auth';
 import { RedisModule } from './redis';
-import { RubricsModule } from './rubric/rubrics.module';
+import { GroupModule } from './group/group.module';
+import { QuestionsModule } from './questions/questions.module';
+import { OptionsModule } from './options/options.module';
 
 @Module({
   imports: [
@@ -27,7 +29,9 @@ import { RubricsModule } from './rubric/rubrics.module';
     PrismaModule,
     RedisModule,
     AuthModule,
-    RubricsModule,
+    GroupModule,
+    QuestionsModule,
+    OptionsModule,
   ],
   controllers: [AppController],
   providers: [
