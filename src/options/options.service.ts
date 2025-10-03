@@ -30,11 +30,6 @@ export class OptionsService {
     return this.prisma.option.findMany({ where: { questionId } });
   }
 
-  // async findOne(id: number) {
-  //   const option = await this.prisma.option.findUnique({ where: { id } });
-  //   if (!option) throw new NotFoundException('Option not found');
-  //   return option;
-  // }
 
   async update(id: number, dto: UpdateOptionDto) {
     return this.prisma.option.update({

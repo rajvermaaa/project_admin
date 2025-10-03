@@ -3,64 +3,116 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class QuestionsService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateQuestionDto) {
-    try {
-      return await this.prisma.question.create({
-        data: {
-          text: dto.text,
-          groupId: dto.groupId,
-        },
-        include: { options: true },
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new ConflictException('Question text must be unique inside this group');
-      }
-      throw error;
-    }
-  }
+    const existing = await this.prisma.question.findFirst({
+      where: {
+        text: dto.text,
+        groupId: dto.groupId,
+      },
+    });
 
-  async findAllByGroup(groupId: number) {
-    return this.prisma.question.findMany({
-      where: { groupId },
-      include: { options: true },
+    if (existing) {
+      throw new ConflictException('Question text must be unique inside this group');
+    }
+
+    return this.prisma.question.create({
+      data: {
+        text: dto.text,
+        groupId: dto.groupId,
+      },
+      select: {
+        id: true,
+        text: true,
+        groupId: true,
+        options: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+          },
+        },
+      },
     });
   }
 
   async findOne(id: number) {
     const question = await this.prisma.question.findUnique({
       where: { id },
-      include: { options: true },
+      select: {
+        id: true,
+        text: true,
+        groupId: true,
+        options: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+          },
+        },
+      },
     });
+
     if (!question) throw new NotFoundException('Question not found');
     return question;
   }
 
   async update(id: number, dto: UpdateQuestionDto) {
-    try {
-      return await this.prisma.question.update({
-        where: { id },
-        data: dto,
-        include: { options: true },
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new ConflictException('Question text must be unique inside this group');
-      }
-      throw error;
+    const question = await this.prisma.question.findUnique({ where: { id } });
+    if (!question) throw new NotFoundException('Question not found');
+
+    const duplicate = await this.prisma.question.findFirst({
+      where: {
+        text: dto.text,
+        groupId: dto.groupId ?? question.groupId,
+        NOT: { id },
+      },
+    });
+
+    if (duplicate) {
+      throw new ConflictException('Question text must be unique inside this group');
     }
+
+    return this.prisma.question.update({
+      where: { id },
+      data: dto,
+      select: {
+        id: true,
+        text: true,
+        groupId: true,
+        options: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+          },
+        },
+      },
+    });
   }
 
   async remove(id: number) {
+    const question = await this.prisma.question.findUnique({ where: { id } });
+    if (!question) throw new NotFoundException('Question not found');
+
     return this.prisma.question.delete({
       where: { id },
-      include: { options: true },
+      select: {
+        id: true,
+        text: true,
+        groupId: true,
+        options: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+          },
+        },
+      },
     });
   }
 

@@ -181,7 +181,7 @@ model Question {
   updatedAt DateTime @updatedAt
   options   Option[]
 
-  @@unique([text, groupId]) // unique question inside group
+  @@unique([text, groupId]) 
 }
 
 model Option {

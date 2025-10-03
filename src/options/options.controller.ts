@@ -8,11 +8,18 @@ import {
   Param,
   Body,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { OptionsService } from './options.service';
 import { CreateOptionDto } from './dto/create-option.dto';
 import { UpdateOptionDto } from './dto/update-option.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AccessGuard, JwtAuthGuard, Roles, RolesGuard, UserType } from '@Common';
 
+@ApiTags('Options')
+@ApiBearerAuth()
+@Roles(UserType.Admin)
+@UseGuards(JwtAuthGuard, AccessGuard, RolesGuard)
 @Controller('options')
 export class OptionsController {
   constructor(private readonly optionsService: OptionsService) {}
